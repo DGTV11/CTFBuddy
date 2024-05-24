@@ -1,0 +1,12 @@
+gradio==4.21.0
+ollama==0.1.7
+langchain==0.1.12
+langchain-community==0.0.28 
+langchain-core==0.1.32
+requests==2.31.0
+bs4==0.0.2
+nest_asyncio==1.6.0
+tiktoken==0.6.0
+chromadb==0.4.24
+tokenizers==0.15.2
+semantic-text-splitter==0.12.1
