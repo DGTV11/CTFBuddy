@@ -45,7 +45,11 @@ def send_message_to_mtsu(ollama_chat, history, message):
 
     start_time = time()
     res = ollama_chat.invoke_and_append_generated_message(stream=True)
+    first_token_recvd = False
     for res_str in res:
+        if not first_token_recvd:
+            log.log_info("Method Suggestor", f"Received first token in {round(time()-start_time, 2)}s")
+            first_token_recvd = True
         history[-1][1] = res_str
         yield history
     end_time = time()
