@@ -31,18 +31,36 @@ You will assist the user with the following challenge (remember to pay attention
 - Challenge description: <<chall_desc>>
 - Challenge files:"""
 
+STARTING_PROMPTS = [
+    "What clues can you extract from the given challenge name, challenge description and challenge files (if any) that can be used to find a solution (DO NOT SUGGEST A SOLUTION!)? Let's think step by step.",
+    "Based on the given challenge and extracted clues, state and explain the technique(s) that may have been used to obfuscate the flag. Let's think step by step.",
+    "Based on the given challenge, extracted clues and technique explanation, what is a possible method that can be used to solve the given challenge? Let's think step by step.",
+    "Finally, based on the given challenge, extracted clues, technique explanation and suggested method, explain how you would write a script to solve the given challenge, then give me a possible solve script for the given challenge. ONLY provide the explanation and given solve script in that order, and nothing else"
+]
+
+def send_message_to_mtsu(ollama_chat, history, message):
+    history.append([message, ''])
+    ollama_chat.append_message("user", message)
+    yield history
+
+    start_time = time()
+    res = ollama_chat.invoke_and_append_generated_message(stream=True)
+    for res_str in res:
+        history[-1][1] = res_str
+        yield history
+    end_time = time()
+    log.log_info(
+        "Method Suggestor", f"Generated response in {round(end_time-start_time, 2)}s"
+    )
+    yield history
 
 def generate_mtsu(
-    method_suggestor_model, chall_name, flag_format, chall_desc, chall_filepaths
+    method_suggestor_model, chall_name, flag_format, chall_desc, chall_filepaths, chat_history
 ):
     if not (chall_name and flag_format and chall_desc):
         raise GradioError(
             'Please provide "Challenge name", "Flag format", and "Challenge description"'
         )
-
-    extracted_clues = technique_explanation = suggested_method = (
-        suggested_solve_script
-    ) = ""
 
     prompt = (
         MTSU_GEN_SYSTEM_PROMPT.replace("<<chall_name>>", chall_name)
@@ -57,67 +75,10 @@ def generate_mtsu(
         prompt += " Nil"
 
     ollama_chat = OllamaChat(HOST, method_suggestor_model, prompt)
+    
+    for prompt in STARTING_PROMPTS:
+        for history in send_message_to_mtsu(ollama_chat, chat_history, prompt):
+            chat_history = history
+            yield history
 
-    log.log_info("Method Suggestor", "Extracting clues...")
-    start_time = time()
-    ollama_chat.append_message(
-        "user",
-        "What clues can you extract from the given challenge name, challenge description and challenge files (if any) that can be used to find a solution (DO NOT SUGGEST A SOLUTION!)? Let's think step by step.",
-    )
-    res = ollama_chat.invoke_and_append_generated_message(stream=True)
-    for res_str in res:
-        extracted_clues = res_str
-        yield extracted_clues, technique_explanation, suggested_method, suggested_solve_script
-    end_time = time()
-    log.log_info(
-        "Method Suggestor", f"Extracted clues in {round(end_time-start_time, 2)}s"
-    )
-
-    log.log_info("Method Suggestor", "Generating technique explanation...")
-    start_time = time()
-    ollama_chat.append_message(
-        "user",
-        "Based on the given challenge and extracted clues, state and explain the technique(s) that may have been used to obfuscate the flag. Let's think step by step.",
-    )
-    res = ollama_chat.invoke_and_append_generated_message(stream=True)
-    for res_str in res:
-        technique_explanation = res_str
-        yield extracted_clues, technique_explanation, suggested_method, suggested_solve_script
-    end_time = time()
-    log.log_info(
-        "Method Suggestor",
-        f"Generated technique explanation in {round(end_time-start_time, 2)}s",
-    )
-
-    log.log_info("Method Suggestor", "Suggesting method...")
-    start_time = time()
-    ollama_chat.append_message(
-        "user",
-        "Based on the given challenge, extracted clues and technique explanation, what is a possible method that can be used to solve the given challenge? Let's think step by step.",
-    )
-    res = ollama_chat.invoke_and_append_generated_message(stream=True)
-    for res_str in res:
-        suggested_method = res_str
-        yield extracted_clues, technique_explanation, suggested_method, suggested_solve_script
-    end_time = time()
-    log.log_info(
-        "Method Suggestor", f"Suggested method in {round(end_time-start_time, 2)}s"
-    )
-
-    log.log_info("Method Suggestor", "Generating possible solve script...")
-    start_time = time()
-    ollama_chat.append_message(
-        "user",
-        "Finally, based on the given challenge, extracted clues, technique explanation and suggested method, explain how you would write a script to solve the given challenge, then give me a possible solve script for the given challenge. ONLY provide the explanation and given solve script in that order, and nothing else",
-    )
-    res = ollama_chat.invoke_and_append_generated_message(stream=True)
-    for res_str in res:
-        suggested_solve_script = res_str
-        yield extracted_clues, technique_explanation, suggested_method, suggested_solve_script
-    end_time = time()
-    log.log_info(
-        "Method Suggestor",
-        f"Generated solve script in {round(end_time-start_time, 2)}s",
-    )
-
-    yield extracted_clues, technique_explanation, suggested_method, suggested_solve_script
+    yield history
