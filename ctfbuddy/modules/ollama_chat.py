@@ -1,12 +1,8 @@
 from typing import Optional
 from ollama import Client
 
-CTX_WINDOWS = {
-        'llama3': 8192,
-        'openchat': 8192,
-        'mistral': 32768,
-        'phi3': 131072
-}
+from modules.tokenisers import get_tokeniser_and_context_window
+
 
 class OllamaChat:
     def __init__(self, client: Client, model_name: str, system_prompt: Optional[str]):
@@ -14,12 +10,20 @@ class OllamaChat:
         self.model_name = model_name
         self.message_history = []
 
+        self.tokeniser, self.ctx_window, _, self.num_token_func = (
+            get_tokeniser_and_context_window(model_name)
+        )
+
         if not model_name:
             raise ValueError("Model name required")
         if not client:
             raise ValueError("Client required")
         if system_prompt:
             self.append_message("system", system_prompt)
+
+    @property
+    def conv_no_tokens(self):
+        return self.num_token_func(self.message_history)
 
     @staticmethod
     def wrap_message(role, content):
@@ -49,7 +53,10 @@ class OllamaChat:
             raise ValueError("Message history must end with a user message")
 
         return self.client.chat(
-                model=self.model_name, messages=self.message_history, stream=stream, options={"num_ctx": 32768}
+            model=self.model_name,
+            messages=self.message_history,
+            stream=stream,
+            options={"num_ctx": self.ctx_window},
         )
 
     def invoke_and_append_generated_message(self, stream=False):

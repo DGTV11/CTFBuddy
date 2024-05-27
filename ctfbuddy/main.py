@@ -34,7 +34,7 @@ if __name__ == "__main__":
             method_suggestor_model = gr.Dropdown(
                 ["llama3", "openchat", "mistral", "phi3"], label="Model:", value="phi3"
             )
-            '''
+            """
             with gr.Accordion("Extracted clues", open=True):
                 extracted_clues = gr.Markdown()
             with gr.Accordion("Technique explanation", open=True):
@@ -43,27 +43,38 @@ if __name__ == "__main__":
                 suggested_method = gr.Markdown()
             with gr.Accordion("Suggested solve script", open=True):
                 suggested_solve_script = gr.Markdown()
-            '''
-            chatbot = gr.Chatbot()
-            
-            '''
+            """
+            with gr.Column():
+                conv_token_frac = gr.Textbox(
+                    label="[Used tokens]/[Context window] ([Used token percentage])"
+                )
+                chatbot = gr.Chatbot(label="Output")
+
+            """
             clear_mtsu_out_btn = gr.ClearButton(
                 value="Clear outputs",
                 components=[extracted_clues, technique_explanation, suggested_method, suggested_solve_script],
             )
-            '''
+            """
 
-        '''
+        """
         generate_mtsu_btn.click(
             fn=gen_mtsu.generate_mtsu,
             inputs=[method_suggestor_model, chall_name, flag_format, chall_desc, chall_filepaths],
             outputs=[extracted_clues, technique_explanation, suggested_method, suggested_solve_script],
         )
-        '''
+        """
         generate_mtsu_btn.click(
             fn=gen_mtsu.generate_mtsu,
-            inputs=[method_suggestor_model, chall_name, flag_format, chall_desc, chall_filepaths, chatbot],
-            outputs=[chatbot],
+            inputs=[
+                method_suggestor_model,
+                chall_name,
+                flag_format,
+                chall_desc,
+                chall_filepaths,
+                chatbot,
+            ],
+            outputs=[chatbot, conv_token_frac],
         )
 
     print("Launching...")

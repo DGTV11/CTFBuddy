@@ -8,7 +8,11 @@ from langchain_community.chat_models import ChatOllama
 
 import modules.logging as log
 from modules.host import HOST_URL, HOST
-from modules.study_chatbot.surf_web import gen_queries, search, make_vectorstore_retriever
+from modules.study_chatbot.surf_web import (
+    gen_queries,
+    search,
+    make_vectorstore_retriever,
+)
 from modules.latent_space_activation.technique01_dialog import lsa_query
 from modules.moderate import moderate, check_moderation
 from modules.config import CONFIG
@@ -65,7 +69,9 @@ def gen_response(
         log.log_info("Autosurfer", "Processing search results...")
         retriever = make_vectorstore_retriever(search_docs)
         end_time = time()
-        log.log_info("Autosurfer", f"Processed search results ({round(end_time-start_time, 2)}s)")
+        log.log_info(
+            "Autosurfer", f"Processed search results ({round(end_time-start_time, 2)}s)"
+        )
 
         model_local = ChatOllama(
             model=f"guardrailed_{autosurfer_model}", base_url=HOST_URL
