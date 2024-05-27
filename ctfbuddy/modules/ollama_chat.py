@@ -1,6 +1,12 @@
 from typing import Optional
 from ollama import Client
 
+CTX_WINDOWS = {
+        'llama3': 8192,
+        'openchat': 8192,
+        'mistral': 32768,
+        'phi3': 131072
+}
 
 class OllamaChat:
     def __init__(self, client: Client, model_name: str, system_prompt: Optional[str]):
@@ -43,7 +49,7 @@ class OllamaChat:
             raise ValueError("Message history must end with a user message")
 
         return self.client.chat(
-            model=self.model_name, messages=self.message_history, stream=stream
+                model=self.model_name, messages=self.message_history, stream=stream, options={"num_ctx": 32768}
         )
 
     def invoke_and_append_generated_message(self, stream=False):
