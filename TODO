@@ -1,4 +1,4 @@
 Roadmap:
-- Fix error after method suggestion generation
+- Add more categories
 - Make more automatic CTF solver
 - Offload server to raspberry pi
