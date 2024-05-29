@@ -30,7 +30,7 @@ pip install -r requirements.txt
 ngrok config add-authtoken [AUTH TOKEN]
 ```
 
-9. Pull the mistral, phi3, llava and nomic-embed-text models
+9. Pull the llama3, mistral, phi3, llava and nomic-embed-text models
 
 ```sh
 ollama pull llama3 mistral phi3 llava nomic-embed-text
@@ -38,7 +38,7 @@ ollama pull llama3 mistral phi3 llava nomic-embed-text
 
 10. Create a Hugging Face account (https://huggingface.co/)
 
-11. Get gated model access for Mistral (model: mistralai/Mistral-7B-Instruct-v0.2)
+11. Get gated model access for Mistral (model: mistralai/Mistral-7B-Instruct-v0.3) and Llama3 (model: meta-llama/Meta-Llama-3-8B)
 
 12. Get a Hugging Face User Access Token (https://huggingface.co/settings/tokens)
 
@@ -82,7 +82,7 @@ To create a public link, set `share=True` in `launch()`.
 
 ## Features
 
-1. Method Suggestor
+1. Crypto Autosolver
 
 ## Notes
 
