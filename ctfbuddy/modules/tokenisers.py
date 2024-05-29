@@ -3,7 +3,6 @@ from tokenizers import Tokenizer
 
 from modules.config import CONFIG
 
-
 def mistral_format_system(conv):
     if not conv:
         return conv
@@ -22,23 +21,22 @@ def mistral_format_system(conv):
         return [{"role": "user", "content": conv[0]["content"]}]
     return conv
 
-
 def get_tokeniser_and_context_window(model_name):
     match model_name:
         case "llama3":
             tokenizer = AutoTokenizer.from_pretrained(
-                "AdithyaSK/LLama3Tokenizer",
-                auth_token=CONFIG["huggingface_user_access_token"],
+                "meta-llama/Meta-Llama-3-8B",
+                token=CONFIG["huggingface_user_access_token"],
             )
             ctx_window = 8192
             num_token_func = lambda text: len(tokenizer.encode(text))
             ct_num_token_func = lambda conv: len(tokenizer.apply_chat_template(conv))
         case "mistral":
             tokenizer = AutoTokenizer.from_pretrained(
-                "mistralai/Mistral-7B-Instruct-v0.2",
-                auth_token=CONFIG["huggingface_user_access_token"],
+                "mistralai/Mistral-7B-Instruct-v0.3",
+                token=CONFIG["huggingface_user_access_token"],
             )
-            ctx_window = 32768
+            ctx_window = 16384 #usually 32768 but reduced to lower RAM usage
             num_token_func = lambda text: len(tokenizer.encode(text))
             ct_num_token_func = lambda conv: len(
                 tokenizer.apply_chat_template(mistral_format_system(conv))
@@ -46,7 +44,7 @@ def get_tokeniser_and_context_window(model_name):
         case "openchat":
             tokenizer = AutoTokenizer.from_pretrained(
                 "openchat/openchat_3.5",
-                auth_token=CONFIG["huggingface_user_access_token"],
+                token=CONFIG["huggingface_user_access_token"],
             )
             ctx_window = 8192
             num_token_func = lambda text: len(tokenizer.encode(text))
@@ -54,9 +52,9 @@ def get_tokeniser_and_context_window(model_name):
         case "phi3":
             tokenizer = AutoTokenizer.from_pretrained(
                 "microsoft/Phi-3-mini-4k-instruct",
-                auth_token=CONFIG["huggingface_user_access_token"],
+                token=CONFIG["huggingface_user_access_token"],
             )
-            ctx_window = 131072
+            ctx_window = 4096
             num_token_func = lambda text: len(tokenizer.encode(text))
             ct_num_token_func = lambda conv: len(tokenizer.apply_chat_template(conv))
         case _:
