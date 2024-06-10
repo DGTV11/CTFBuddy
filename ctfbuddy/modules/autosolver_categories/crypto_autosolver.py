@@ -4,7 +4,8 @@ from gradio import Error as GradioError
 
 import modules.logging as log
 from modules.ollama_chat import OllamaChat
-from modules.host import HOST
+from modules.config import gradio_assert_config_exists
+from modules.host import get_host
 
 CA_SYSTEM_PROMPT = """You are an AI language model specializing in cybersecurity and Capture The Flag (CTF) competitions. You assist users in solving challenges by providing expert guidance and step-by-step solutions. You are knowledgeable in the Cryptography CTF category, knowing Python libraries such as PyCryptodome (Crypto) and math, and tools such as sagemath and FactorDB.
 ## Guidelines:
@@ -74,6 +75,7 @@ def crypto_autosolver(
     chat_history,
 ):
     chat_history = []
+    gradio_assert_config_exists()
     if not (chall_name and flag_format and chall_desc):
         raise GradioError(
             'Please provide "Challenge name", "Flag format", and "Challenge description"'
@@ -91,7 +93,7 @@ def crypto_autosolver(
     else:
         system_prompt += " Nil"
 
-    ollama_chat = OllamaChat(HOST, autosolver_model, system_prompt)
+    ollama_chat = OllamaChat(get_host(), autosolver_model, system_prompt)
 
     for prompt in CA_STARTING_PROMPTS:
         for history, conv_token_frac in send_message_to_crypto_autosolver(
