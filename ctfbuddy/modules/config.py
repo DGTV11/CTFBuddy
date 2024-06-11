@@ -9,7 +9,12 @@ CONFIG_PATH = config_path = path.join(
 
 def get_config():
     if not path.exists(CONFIG_PATH):
-        return None
+        return {
+            "server_url": '',
+            "google_api_key": '',
+            "google_prog_search_engine_id": '',
+            "huggingface_user_access_token": '',
+        }
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
@@ -30,7 +35,8 @@ def get_config():
     }
 
 def gradio_assert_config_exists():
-    if not get_config():
+    conf = get_config()
+    if not (conf['server_url'] and conf["google_api_key"] and conf["google_prog_search_engine_id"] and conf["huggingface_user_access_token"]):
         raise GradioError('Config not found! Please configure CTFBuddy before running any autosolvers!')
 
 def update_config(server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token):
