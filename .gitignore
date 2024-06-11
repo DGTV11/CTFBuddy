@@ -178,3 +178,4 @@ pyrightconfig.json
 
 # Custom stuffs
 config.ini
+*.log
