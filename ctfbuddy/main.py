@@ -72,6 +72,8 @@ def config_ollama_server_url_update(value):
 
 def config_server_port_update(value):
     stripped_value = value.strip()
+    if not stripped_value:
+         return str(get_first_usable_port_from_7860()) 
     stripped_value_int = int(stripped_value)
     if (
         (not stripped_value.isdigit())
