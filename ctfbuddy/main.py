@@ -252,7 +252,7 @@ if __name__ == "__main__":
         )
 
         if config_writable:
-            config_server_name.submit(
+            config_server_name.update(
                 fn=config_server_name_update,
                 inputs=[config_server_name],
                 outputs=[config_server_name],
@@ -262,22 +262,22 @@ if __name__ == "__main__":
                 inputs=[config_server_port],
                 outputs=[config_server_port],
             )
-            config_ollama_server_url.submit(
+            config_ollama_server_url.update(
                 fn=config_ollama_server_url_update,
                 inputs=[config_ollama_server_url],
                 outputs=[config_ollama_server_url],
             )
-            config_google_api_key.submit(
+            config_google_api_key.update(
                 fn=config_standard_update,
                 inputs=[config_google_api_key],
                 outputs=[config_google_api_key],
             )
-            config_google_prog_search_engine_id.submit(
+            config_google_prog_search_engine_id.update(
                 fn=config_standard_update,
                 inputs=[config_google_prog_search_engine_id],
                 outputs=[config_google_prog_search_engine_id],
             )
-            config_huggingface_user_access_token.submit(
+            config_huggingface_user_access_token.update(
                 fn=config_standard_update,
                 inputs=[config_huggingface_user_access_token],
                 outputs=[config_huggingface_user_access_token],
@@ -300,4 +300,5 @@ if __name__ == "__main__":
     ctfbuddy.launch(
         server_name=(get_config()["server_name"] or "127.0.0.1"),
         server_port=(None if not (spi := get_config()["server_port"]) else int(spi)),
-    )
+ 
+Running on local URL:  http://skibidi-   )
