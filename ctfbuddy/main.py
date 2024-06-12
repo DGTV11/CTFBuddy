@@ -14,15 +14,15 @@ def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex((server_name, port)) == 0
 
-def get_first_usable_port_from_7650():
+def get_first_usable_port_from_7860():
     server_name = get_config()["server_name"] or '127.0.0.1'
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        for port in range(7650, 65536):
+        for port in range(7860, 65536):
             if s.connect_ex((server_name, port)) != 0:
-                return i
+                return port
         log_warning('Configuration', 'No available ports from port 7650')
-        return "7650"
+        return "7860"
 
 def load_config_if_tab_is_selected(server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token, evt_data: gr.SelectData):
     if evt_data.selected:
@@ -45,8 +45,9 @@ def config_ollama_server_url_update(value):
 def config_server_port_update(value):
     stripped_value = value.strip()
     stripped_value_int = int(stripped_value)
-    if (not stripped_value.isdigit()) or stripped_value_int < 7650 or stripped_value_int > 65536 or is_port_in_use(stripped_value_int):
-        return str(get_first_usable_port_from_7650())
+    if ((not stripped_value.isdigit()) or stripped_value_int < 7860 or stripped_value_int > 65536) or (get_config()['server_port'] != value and is_port_in_use(stripped_value_int)):
+        return str(get_first_usable_port_from_7860())
+
     return stripped_value
 
 def config_standard_update(value):
