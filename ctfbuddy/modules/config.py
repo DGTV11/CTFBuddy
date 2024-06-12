@@ -10,7 +10,9 @@ CONFIG_PATH = config_path = path.join(
 def get_config():
     if not path.exists(CONFIG_PATH):
         return {
-            "server_url": '',
+            "server_name": '',
+            "server_port": '',
+            "ollama_server_url": '',
             "google_api_key": '',
             "google_prog_search_engine_id": '',
             "huggingface_user_access_token": '',
@@ -18,7 +20,10 @@ def get_config():
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
 
-    server_url = config.get("Server", "server_url")
+    server_name = config.get("Server", "server_name")
+    server_port = config.get("Server", "server_port")
+    ollama_server_url = config.get("Server", "ollama_server_url")
+
     google_api_key = config.get("Keys_and_IDs", "google_api_key")
     google_prog_search_engine_id = config.get(
         "Keys_and_IDs", "google_prog_search_engine_id"
@@ -28,7 +33,9 @@ def get_config():
     )
 
     return {
-        "server_url": server_url,
+        "server_name": server_name,
+        "server_port": server_port,
+        "ollama_server_url": ollama_server_url,
         "google_api_key": google_api_key,
         "google_prog_search_engine_id": google_prog_search_engine_id,
         "huggingface_user_access_token": huggingface_user_access_token,
@@ -39,11 +46,13 @@ def gradio_assert_config_exists():
     if not (conf['server_url'] and conf["google_api_key"] and conf["google_prog_search_engine_id"] and conf["huggingface_user_access_token"]):
         raise GradioError('Config not found! Please configure CTFBuddy before running any autosolvers!')
 
-def update_config(server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token):
+def update_config(server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token):
     config = configparser.ConfigParser()
 
     config["Server"] = {
-        "server_url": server_url
+        "server_name": server_name,
+        "server_port": server_port,
+        "ollama_server_url": ollama_server_url
     }
 
     config["Keys_and_IDs"] = {

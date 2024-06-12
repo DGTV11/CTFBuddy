@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import socket
 
 import gradio as gr
 
@@ -8,11 +9,32 @@ from modules.autosolver_categories.crypto_autosolver import crypto_autosolver
 from modules.logging import log_warning
 from modules.config import get_config, update_config
 
-def load_config_if_tab_is_selected(ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token, evt_data: gr.SelectData):
+def is_port_in_use(port):
+    server_name = get_config()["server_name"] or '127.0.0.1'
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex((server_name, port)) == 0
+
+def get_first_usable_port_from_7650():
+    server_name = get_config()["server_name"] or '127.0.0.1'
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        for port in range(7650, 65536):
+            if s.connect_ex((server_name, port)) != 0:
+                return i
+        log_warning('Configuration', 'No available ports from port 7650')
+        return "7650"
+
+def load_config_if_tab_is_selected(server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token, evt_data: gr.SelectData):
     if evt_data.selected:
         prev_config = get_config()
-        return prev_config["server_url"], prev_config["google_api_key"], prev_config["google_prog_search_engine_id"], prev_config["huggingface_user_access_token"]
-    return ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token
+        return prev_config["server_name"], prev_config["server_port"], prev_config["ollama_server_url"], prev_config["google_api_key"], prev_config["google_prog_search_engine_id"], prev_config["huggingface_user_access_token"]
+    return server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token
+
+def config_server_name_update(value):
+    stripped_value = value.strip()
+    if not stripped_value:
+        return '127.0.0.1'
+    return stripped_value
 
 def config_ollama_server_url_update(value):
     stripped_value = value.strip()
@@ -20,20 +42,29 @@ def config_ollama_server_url_update(value):
         return 'http://127.0.0.1:11434'
     return stripped_value
 
-def config_google_api_key_update(value):
+def config_server_port_update(value):
+    stripped_value = value.strip()
+    stripped_value_int = int(stripped_value)
+    if (not stripped_value.isdigit()) or stripped_value_int < 7650 or stripped_value_int > 65536 or is_port_in_use(stripped_value_int):
+        return str(get_first_usable_port_from_7650())
+    return stripped_value
+
+def config_standard_update(value):
     return value.strip()
 
-def config_google_prog_search_engine_id_update(value):
-    return value.strip()
+def config_validate_and_submit(server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token):
+    if not server_name:
+        log_warning('Configuration', 'Unable to save configuration: Server name is required')
+        return
 
-def config_huggingface_user_access_token_update(value):
-    return value.strip()
+    if not server_port:
+        log_warning('Configuration', 'Unable to save configuration: Server port is required')
+        return
 
-def config_validate_and_submit(ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token):
     if not google_api_key:
         log_warning('Configuration', 'Unable to save configuration: Google API Key is required')
         return
-    
+
     if not google_prog_search_engine_id:
         log_warning('Configuration', 'Unable to save configuration: Google Programmable Search Engine ID is required')
         return
@@ -42,7 +73,7 @@ def config_validate_and_submit(ollama_server_url, google_api_key, google_prog_se
         log_warning('Configuration', 'Unable to save configuration: Hugging Face User Access Token is required')
         return
 
-    update_config(ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token)
+    update_config(server_name, server_port, ollama_server_url, google_api_key, google_prog_search_engine_id, huggingface_user_access_token)
 
 parser = argparse.ArgumentParser(
     prog='CTFBuddy',
@@ -94,6 +125,8 @@ if __name__ == "__main__":
         
         if config_writable:
             with gr.Tab("Configuration") as config_tab:
+                config_server_name = gr.Textbox(label='Server name (Restart for change to take effect, default 127.0.0.1):')
+                config_server_port = gr.Textbox(label='Server port (Restart for change to take effect, must be a number)')
                 config_ollama_server_url = gr.Textbox(label='Ollama server url (Default http://127.0.0.1:11434):')
                 config_google_api_key = gr.Textbox(label='Google API Key:', type='password')
                 config_google_prog_search_engine_id = gr.Textbox(label='Google Programmable Search Engine ID: ', type='password')
@@ -102,8 +135,8 @@ if __name__ == "__main__":
 
                 config_tab.select(
                     fn=load_config_if_tab_is_selected,
-                    inputs=[config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token],
-                    outputs=[config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token]
+                    inputs=[config_server_name, config_server_port, config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token],
+                    outputs=[config_server_name, config_server_port, config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token]
                 )
 
         ca_run_btn.click(
@@ -120,32 +153,42 @@ if __name__ == "__main__":
         )
 
         if config_writable:
+            config_server_name.change(
+                fn=config_server_name_update,
+                inputs=[config_server_name],
+                outputs=[config_server_name]
+            )
+            config_server_port.change(
+                fn=config_server_port_update,
+                inputs=[config_server_port],
+                outputs=[config_server_port]
+            )
             config_ollama_server_url.change(
                 fn=config_ollama_server_url_update, 
                 inputs=[config_ollama_server_url], 
                 outputs=[config_ollama_server_url]
             )
             config_google_api_key.change(
-                fn=config_google_api_key_update, 
+                fn=config_standard_update, 
                 inputs=[config_google_api_key], 
                 outputs=[config_google_api_key]
             )
             config_google_prog_search_engine_id.change(
-                fn=config_google_prog_search_engine_id_update, 
+                fn=config_standard_update, 
                 inputs=[config_google_prog_search_engine_id], 
                 outputs=[config_google_prog_search_engine_id]
             )
             config_huggingface_user_access_token.change(
-                fn=config_huggingface_user_access_token_update, 
+                fn=config_standard_update, 
                 inputs=[config_huggingface_user_access_token], 
                 outputs=[config_huggingface_user_access_token])
             config_submit_btn.click(
                 fn=config_validate_and_submit,
-                inputs=[config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token],
+                inputs=[config_server_name, config_server_port, config_ollama_server_url, config_google_api_key, config_google_prog_search_engine_id, config_huggingface_user_access_token],
                 outputs=None
             )
 
 
     print("Launching...")
     ctfbuddy.queue()
-    ctfbuddy.launch()
+    ctfbuddy.launch(server_name=(get_config()["server_name"] or '127.0.0.1'), server_port=(None if not (spi:=get_config()["server_port"]) else int(spi)))

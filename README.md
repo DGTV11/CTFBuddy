@@ -33,7 +33,10 @@ ngrok config add-authtoken [AUTH TOKEN]
 9. Pull the llama3, mistral, phi3, and llava models
 
 ```sh
-ollama pull llama3 mistral phi3 llava
+ollama pull llama3
+ollama pull mistral
+ollama pull phi3
+ollama pull llava-llama3
 ```
 
 10. Create a Hugging Face account (https://huggingface.co/)
