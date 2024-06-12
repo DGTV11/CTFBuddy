@@ -252,32 +252,32 @@ if __name__ == "__main__":
         )
 
         if config_writable:
-            config_server_name.change(
+            config_server_name.submit(
                 fn=config_server_name_update,
                 inputs=[config_server_name],
                 outputs=[config_server_name],
             )
-            config_server_port.change(
+            config_server_port.submit(
                 fn=config_server_port_update,
                 inputs=[config_server_port],
                 outputs=[config_server_port],
             )
-            config_ollama_server_url.change(
+            config_ollama_server_url.submit(
                 fn=config_ollama_server_url_update,
                 inputs=[config_ollama_server_url],
                 outputs=[config_ollama_server_url],
             )
-            config_google_api_key.change(
+            config_google_api_key.submit(
                 fn=config_standard_update,
                 inputs=[config_google_api_key],
                 outputs=[config_google_api_key],
             )
-            config_google_prog_search_engine_id.change(
+            config_google_prog_search_engine_id.submit(
                 fn=config_standard_update,
                 inputs=[config_google_prog_search_engine_id],
                 outputs=[config_google_prog_search_engine_id],
             )
-            config_huggingface_user_access_token.change(
+            config_huggingface_user_access_token.submit(
                 fn=config_standard_update,
                 inputs=[config_huggingface_user_access_token],
                 outputs=[config_huggingface_user_access_token],

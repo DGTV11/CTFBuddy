@@ -2,3 +2,7 @@ Roadmap:
 - Add more categories
 - Make more automatic CTF solver
 - Offload server to raspberry pi
+
+Things to be done:
+- Fix config validation
+- Add extra auth step before being able to submit config
